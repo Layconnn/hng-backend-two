@@ -53,21 +53,28 @@ const getDigitSum = (num: number): number => {
 app.get("/api/classify-number", async (req: Request, res: Response): Promise<void> => {
   const { number } = req.query;
 
-  // If no number is provided or an empty string, return all values as null
-  if (number === undefined || number === "") {
+  const numStr = number as string;
+
+  const digit = parseInt(number as string, 10);
+
+   // If no number is provided or an empty string, return all values as null
+   if (number !== undefined && (number === "" || isNaN(digit))) {
     res.status(400).json({
-      number: "",
+      number: "alphabet",
+      error: true
+    });
+    return;
+  } 
+  
+  if (!/^-?\d+$/.test(numStr)) {
+    res.status(400).json({
+      number: "alphabet",
       error: true
     });
     return;
   }
 
-  const digit = parseInt(number as string, 10);
-
-  if (isNaN(digit)) {
-    res.status(400).json({ number, error: true });
-    return;
-  }
+ 
 
   // Prevent processing of extremely large numbers (e.g., larger than 1e9)
   if (Math.abs(digit) > 1e9) {
