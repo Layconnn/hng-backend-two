@@ -47,14 +47,19 @@ app.get(
   async (req: Request, res: Response): Promise<void> => {
     const { number } = req.query;
 
-    // If no number was added in 
+    // If no number is added in 
     if (!number) {
-      res.status(400).json({
-        number,
-        error: true
+      res.json({
+        number: null,
+        is_prime: null,
+        is_perfect: null,
+        properties: [],
+        digit_sum: null,
+        fun_fact: null,
       });
       return;
     }
+    
 
     const digit = parseInt(number as string, 10);
 
