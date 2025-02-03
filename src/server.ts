@@ -55,13 +55,9 @@ app.get("/api/classify-number", async (req: Request, res: Response): Promise<voi
 
   // If no number is provided or an empty string, return all values as null
   if (number === undefined || number === "") {
-    res.json({
-      number: null,
-      is_prime: null,
-      is_perfect: null,
-      properties: [],
-      digit_sum: null,
-      fun_fact: null,
+    res.status(400).json({
+      number: "",
+      error: true
     });
     return;
   }
