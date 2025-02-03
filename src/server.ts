@@ -33,19 +33,20 @@ const isPerfect = (num: number): boolean => {
 // Negative numbers are not considered Armstrong numbers.
 const isArmstrong = (num: number): boolean => {
   if (num < 0) return false;
-  // Compute on absolute value (though for positive numbers, it makes no difference)
-  const digits = Math.abs(num).toString().split("").map(Number);
+  const digits = num.toString().split("").map(Number);
   const power = digits.length;
   const sum = digits.reduce((acc, digit) => acc + Math.pow(digit, power), 0);
   return sum === num;
 };
 
-// Calculate the sum of the digits (using the absolute value so the minus sign doesn't interfere)
+// Calculate the sum of the digits.
+// For negative numbers, return the negative of the sum of the digits.
 const getDigitSum = (num: number): number => {
-  return Math.abs(num)
+  const absSum = Math.abs(num)
     .toString()
     .split("")
     .reduce((acc, digit) => acc + parseInt(digit), 0);
+  return num < 0 ? -absSum : absSum;
 };
 
 // API route
@@ -54,9 +55,13 @@ app.get("/api/classify-number", async (req: Request, res: Response): Promise<voi
 
   // If no number is provided or an empty string, return all values as null
   if (number === undefined || number === "") {
-    res.status(400).json({
-      number: "",
-      error: true
+    res.json({
+      number: null,
+      is_prime: null,
+      is_perfect: null,
+      properties: [],
+      digit_sum: null,
+      fun_fact: null,
     });
     return;
   }
@@ -80,11 +85,8 @@ app.get("/api/classify-number", async (req: Request, res: Response): Promise<voi
   if (isArmstrong(digit)) {
     properties.push("armstrong");
   }
-  // Always add parity (even/odd)
   properties.push(digit % 2 === 0 ? "even" : "odd");
 
-  // Fetch fun fact from the Numbers API.
-  // Note: The Numbers API might not support negative numbers.
   let funFact = "No fun fact available.";
   try {
     const response = await axios.get(`http://numbersapi.com/${digit}/math`);
