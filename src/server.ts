@@ -46,12 +46,20 @@ app.get(
   "/api/classify-number",
   async (req: Request, res: Response): Promise<void> => {
     const { number } = req.query;
+
+    // If no number was added in 
+    if (!number) {
+      res.status(400).json({
+        number: "No number inputed",
+        error: true
+      });
+      return;
+    }
+
     const digit = parseInt(number as string, 10);
 
     if (isNaN(digit)) {
-      res
-        .status(400)
-        .json({ number, error: true});
+      res.status(400).json({ number, error: true });
       return;
     }
 
@@ -65,7 +73,7 @@ app.get(
       properties.push(digit % 2 === 0 ? "even" : "odd");
     }
 
-    var funFact = "No fun fact available.";
+    let funFact = "No fun fact available.";
     try {
       const response = await axios.get(`http://numbersapi.com/${digit}/math`);
       if (response.data && typeof response.data === "string") {
