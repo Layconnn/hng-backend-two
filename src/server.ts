@@ -50,7 +50,7 @@ app.get(
     // If no number was added in 
     if (!number) {
       res.status(400).json({
-        number: "No number inputed",
+        number,
         error: true
       });
       return;
