@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import axios from "axios";
+import https from "https";          // For the keep-alive ping
+import cron from "node-cron";     // For scheduling the ping
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,20 +54,18 @@ const getDigitSum = (num: number): number => {
 // API route
 app.get("/api/classify-number", async (req: Request, res: Response): Promise<void> => {
   const { number } = req.query;
-
   const numStr = number as string;
-
   const digit = parseInt(number as string, 10);
 
-   // If no number is provided or an empty string, return all values as null
-   if (number !== undefined && (number === "" || isNaN(digit))) {
+  // If no number is provided or an empty string, or the input is not numeric, return error response
+  if (number !== undefined && (number === "" || isNaN(digit))) {
     res.status(400).json({
       number: "alphabet",
       error: true
     });
     return;
   } 
-  
+
   if (!/^-?\d+$/.test(numStr)) {
     res.status(400).json({
       number: "alphabet",
@@ -73,8 +73,6 @@ app.get("/api/classify-number", async (req: Request, res: Response): Promise<voi
     });
     return;
   }
-
- 
 
   // Prevent processing of extremely large numbers (e.g., larger than 1e9)
   if (Math.abs(digit) > 1e9) {
@@ -113,4 +111,28 @@ app.get("/api/classify-number", async (req: Request, res: Response): Promise<voi
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// Keep the app active on Render by pinging it every 5 minutes
+function keepAlive(url: string): void {
+  https
+    .get(url, (res) => {
+      console.log(`Status: ${res.statusCode}`);
+    })
+    .on("error", (error) => {
+      console.error(`Error: ${error.message}`);
+    });
+}
+
+// Replace with your actual Render URL
+const urlToPing = process.env.RENDER_URL;
+
+// Schedule a ping every 5 minutes using cron
+cron.schedule("*/5 * * * *", () => {
+  if (urlToPing) {
+    keepAlive(urlToPing);
+    console.log("Pinging the server every 5 minutes");
+  } else {
+    console.error("RENDER_URL is not defined.");
+  }
 });
